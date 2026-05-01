@@ -9,6 +9,4 @@
     { "src": "/(.*)", "dest": "/index.html" }
   ]
 }
-    res.status(500).json({ error: err.message });
-  }
-}
+ 
