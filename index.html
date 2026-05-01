@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Español ECG</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=DM+Mono:wght@300;400;500&family=Bricolage+Grotesque:wght@300;400;600;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0c0c10;
+    --surface: #13131a;
+    --surface2: #1c1c28;
+    --border: #2a2a3e;
+    --accent: #e8c547;
+    --accent2: #c94040;
+    --accent3: #4a9eff;
+    --text: #e8e8f0;
+    --muted: #6b6b85;
+    --success: #3dd68c;
+    --error: #ff5e5e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Bricolage Grotesque', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(12,12,16,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2rem; height: 60px;
+  }
+  .nav-logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+    letter-spacing: 0.02em;
+  }
+  .nav-logo span { font-style: italic; color: var(--text); }
+  .nav-tabs {
+    display: flex; gap: 0.25rem;
+  }
+  .nav-tab {
+    background: none; border: none; color: var(--muted);
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.82rem; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; cursor: pointer;
+    padding: 0.4rem 1rem; border-radius: 6px;
+    transition: all 0.2s;
+  }
+  .nav-tab:hover { color: var(--text); background: var(--surface2); }
+  .nav-tab.active { color: var(--accent); background: rgba(232,197,71,0.1); }
+
+  /* MAIN */
+  main {
+    padding-top: 60px;
+    min-height: 100vh;
+  }
+
+  .panel { display: none; }
+  .panel.active { display: block; }
+
+  /* HERO */
+  .hero {
+    padding: 5rem 2rem 3rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'ES';
+    position: absolute; top: -1rem; left: 50%; transform: translateX(-50%);
+    font-family: 'Playfair Display', serif;
+    font-size: 16rem; font-weight: 700;
+    color: rgba(232,197,71,0.04);
+    pointer-events: none; user-select: none;
+    line-height: 1;
+  }
+  .hero h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.2rem, 5vw, 3.5rem);
+    line-height: 1.15;
+    margin-bottom: 1rem;
+  }
+  .hero h1 em { color: var(--accent); font-style: italic; }
+  .hero p {
+    color: var(--muted); font-size: 1rem; max-width: 520px; margin: 0 auto 2.5rem;
+    line-height: 1.7;
+  }
+  .hero-cards {
+    display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap;
+    max-width: 700px; margin: 0 auto;
+  }
+  .hero-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.2rem 1.8rem;
+    cursor: pointer; transition: all 0.25s;
+    text-align: left; flex: 1; min-width: 150px;
+  }
+  .hero-card:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .hero-card .icon { font-size: 1.6rem; margin-bottom: 0.5rem; }
+  .hero-card .label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .hero-card .title { font-size: 1rem; font-weight: 700; margin-top: 0.2rem; }
+
+  /* SECTION WRAPPER */
+  .section {
+    max-width: 860px; margin: 0 auto; padding: 2rem;
+  }
+  .section-header {
+    display: flex; align-items: baseline; gap: 1rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid var(--border); padding-bottom: 1rem;
+  }
+  .section-header h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+  }
+  .section-header .tag {
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; color: var(--accent);
+    background: rgba(232,197,71,0.1);
+    padding: 0.2rem 0.6rem; border-radius: 4px; letter-spacing: 0.1em;
+  }
+
+  /* VOCAB */
+  .theme-selector {
+    display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 2rem;
+  }
+  .theme-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.8rem; padding: 0.4rem 1rem; border-radius: 20px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .theme-btn:hover, .theme-btn.active {
+    background: rgba(232,197,71,0.12); border-color: var(--accent); color: var(--accent);
+  }
+  .vocab-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 0.75rem;
+  }
+  .vocab-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem 1.2rem;
+    cursor: pointer; transition: all 0.2s;
+    position: relative; overflow: hidden;
+  }
+  .vocab-card:hover { border-color: var(--accent3); }
+  .vocab-card .es {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem; font-weight: 700; color: var(--text);
+  }
+  .vocab-card .fr {
+    font-size: 0.82rem; color: var(--muted); margin-top: 0.3rem;
+    transition: opacity 0.2s;
+  }
+  .vocab-card.hidden-fr .fr { opacity: 0; }
+  .vocab-card .genre {
+    position: absolute; top: 0.6rem; right: 0.8rem;
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    color: var(--accent2); letter-spacing: 0.08em;
+  }
+  .toggle-reveal {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.8rem; padding: 0.5rem 1.2rem; border-radius: 8px;
+    cursor: pointer; margin-bottom: 1.2rem; transition: all 0.2s;
+  }
+  .toggle-reveal:hover { color: var(--text); border-color: var(--muted); }
+
+  /* MODE SELECTOR */
+  .mode-selector {
+    display: flex; gap: 0.4rem; margin-bottom: 1.5rem;
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 0.3rem; width: fit-content;
+  }
+  .mode-btn {
+    background: none; border: none;
+    color: var(--muted); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.8rem; font-weight: 600; padding: 0.4rem 1.1rem;
+    border-radius: 7px; cursor: pointer; transition: all 0.2s;
+  }
+  .mode-btn.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 4px rgba(0,0,0,0.4); }
+
+  /* FLASHCARD LAYOUT */
+  .flashcard-area { display: none; }
+  .flashcard-area.active { display: block; }
+  .grid-area { display: none; }
+  .grid-area.active { display: block; }
+
+  /* FLASHCARD SINGLE */
+  .fc-nav {
+    display: flex; align-items: center; justify-content: center;
+    gap: 1.5rem; margin-bottom: 1.5rem;
+  }
+  .fc-counter {
+    font-family: 'DM Mono', monospace; font-size: 0.82rem; color: var(--muted);
+    min-width: 80px; text-align: center;
+  }
+  .fc-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-size: 1.1rem; width: 38px; height: 38px;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fc-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .fc-scene {
+    width: 100%; max-width: 480px; height: 220px;
+    margin: 0 auto 1.5rem; perspective: 1000px; cursor: pointer;
+  }
+  .fc-inner {
+    width: 100%; height: 100%; position: relative;
+    transform-style: preserve-3d; transition: transform 0.55s cubic-bezier(.4,0,.2,1);
+  }
+  .fc-inner.flipped { transform: rotateY(180deg); }
+  .fc-face {
+    position: absolute; inset: 0;
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    border-radius: 16px; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 2rem;
+    border: 1px solid var(--border);
+  }
+  .fc-front {
+    background: var(--surface);
+  }
+  .fc-back {
+    background: var(--surface2);
+    border-color: var(--accent);
+    transform: rotateY(180deg);
+  }
+  .fc-lang {
+    font-family: 'DM Mono', monospace; font-size: 0.65rem;
+    letter-spacing: 0.12em; color: var(--muted); margin-bottom: 0.8rem;
+    text-transform: uppercase;
+  }
+  .fc-word {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.7rem; font-weight: 700; color: var(--text);
+    text-align: center; line-height: 1.3;
+  }
+  .fc-back .fc-word { color: var(--accent); }
+  .fc-hint {
+    font-size: 0.75rem; color: var(--muted); margin-top: 1rem;
+  }
+  .fc-actions {
+    display: flex; gap: 0.75rem; justify-content: center; margin-bottom: 1rem;
+  }
+  .fc-known {
+    background: rgba(61,214,140,0.1); border: 1px solid var(--success);
+    color: var(--success); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.82rem; font-weight: 700; padding: 0.5rem 1.4rem;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .fc-known:hover { background: rgba(61,214,140,0.2); }
+  .fc-unknown {
+    background: rgba(255,94,94,0.1); border: 1px solid var(--error);
+    color: var(--error); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.82rem; font-weight: 700; padding: 0.5rem 1.4rem;
+    border-radius: 8px; cursor: pointer; transition: all 0.2s;
+  }
+  .fc-unknown:hover { background: rgba(255,94,94,0.2); }
+  .fc-progress-bar {
+    width: 100%; max-width: 480px; margin: 0 auto 0.5rem;
+    height: 4px; background: var(--border); border-radius: 2px; overflow: hidden;
+  }
+  .fc-progress-fill {
+    height: 100%; background: var(--accent); border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .fc-stats {
+    display: flex; gap: 1.5rem; justify-content: center;
+    font-family: 'DM Mono', monospace; font-size: 0.72rem; color: var(--muted);
+    margin-bottom: 1.5rem;
+  }
+  .fc-stats .known-count { color: var(--success); }
+  .fc-stats .unknown-count { color: var(--error); }
+  .fc-dir-toggle {
+    display: flex; justify-content: center; margin-bottom: 1.2rem;
+  }
+  .fc-dir-btn {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'DM Mono', monospace;
+    font-size: 0.72rem; padding: 0.3rem 0.9rem; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.06em;
+  }
+  .fc-dir-btn:hover { border-color: var(--accent3); color: var(--accent3); }
+
+  /* GRAMMAR */
+  .grammar-tabs {
+    display: flex; gap: 0.4rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+  }
+  .grammar-tab {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--muted); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.78rem; padding: 0.4rem 0.9rem; border-radius: 6px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .grammar-tab.active { background: var(--accent); color: #0c0c10; border-color: var(--accent); font-weight: 700; }
+  .grammar-content { display: none; }
+  .grammar-content.active { display: block; }
+  .conj-table {
+    width: 100%; border-collapse: collapse; margin-bottom: 1.5rem;
+    font-size: 0.9rem;
+  }
+  .conj-table th {
+    background: var(--surface2); color: var(--accent);
+    font-family: 'DM Mono', monospace; font-size: 0.72rem;
+    letter-spacing: 0.08em; padding: 0.6rem 1rem; text-align: left;
+    border: 1px solid var(--border);
+  }
+  .conj-table td {
+    padding: 0.6rem 1rem; border: 1px solid var(--border);
+    color: var(--text);
+  }
+  .conj-table tr:hover td { background: var(--surface2); }
+  .conj-table .pronoun { color: var(--muted); font-family: 'DM Mono', monospace; font-size: 0.82rem; }
+  .grammar-rule {
+    background: var(--surface); border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0; padding: 1rem 1.2rem; margin-bottom: 1rem;
+  }
+  .grammar-rule h4 { color: var(--accent); font-size: 0.85rem; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.06em; }
+  .grammar-rule p { color: var(--text); line-height: 1.7; font-size: 0.9rem; }
+  .grammar-rule .ejemplo {
+    margin-top: 0.6rem; font-family: 'Playfair Display', serif;
+    font-style: italic; color: var(--accent3); font-size: 0.9rem;
+  }
+
+  /* QUIZ */
+  .quiz-setup {
+    display: flex; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center;
+  }
+  .quiz-setup label { color: var(--muted); font-size: 0.82rem; }
+  .quiz-select {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.82rem; padding: 0.4rem 0.8rem; border-radius: 6px; cursor: pointer;
+  }
+  .quiz-box {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 14px; padding: 2rem; min-height: 260px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    text-align: center;
+  }
+  .quiz-question {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.6rem; margin-bottom: 1.5rem; color: var(--text);
+  }
+  .quiz-options {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 0.75rem; width: 100%; max-width: 480px;
+  }
+  .quiz-opt {
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.9rem; padding: 0.75rem 1rem; border-radius: 10px;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .quiz-opt:hover { border-color: var(--accent3); color: var(--accent3); }
+  .quiz-opt.correct { border-color: var(--success); background: rgba(61,214,140,0.1); color: var(--success); }
+  .quiz-opt.wrong { border-color: var(--error); background: rgba(255,94,94,0.1); color: var(--error); }
+  .quiz-feedback {
+    margin-top: 1.2rem; font-size: 0.88rem;
+    color: var(--muted); min-height: 1.5rem;
+  }
+  .quiz-score {
+    display: flex; gap: 2rem; justify-content: center; margin-bottom: 1.5rem;
+  }
+  .score-item { text-align: center; }
+  .score-item .num {
+    font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--accent);
+  }
+  .score-item .lbl { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .btn-primary {
+    background: var(--accent); color: #0c0c10;
+    font-family: 'Bricolage Grotesque', sans-serif;
+    font-weight: 700; font-size: 0.85rem;
+    border: none; padding: 0.65rem 1.6rem; border-radius: 8px;
+    cursor: pointer; transition: all 0.2s; letter-spacing: 0.03em;
+  }
+  .btn-primary:hover { background: #f0d060; transform: translateY(-1px); }
+
+  /* KHOLLE */
+  .kholle-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;
+  }
+  .kholle-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.4rem;
+  }
+  .kholle-card h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem; margin-bottom: 0.6rem;
+    display: flex; align-items: center; gap: 0.5rem;
+  }
+  .kholle-card .badge {
+    font-family: 'DM Mono', monospace; font-size: 0.6rem;
+    background: rgba(74,158,255,0.15); color: var(--accent3);
+    padding: 0.15rem 0.5rem; border-radius: 4px; letter-spacing: 0.08em;
+  }
+  .kholle-card p { font-size: 0.83rem; color: var(--muted); line-height: 1.65; }
+  .text-box {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.5rem; margin-bottom: 1rem;
+    font-size: 0.9rem; line-height: 1.8; color: var(--text);
+    font-family: 'Playfair Display', serif;
+  }
+  .text-box .source {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    color: var(--muted); margin-bottom: 0.8rem; letter-spacing: 0.06em;
+  }
+  .kholle-questions { margin-top: 1rem; }
+  .kholle-q {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 8px; padding: 0.8rem 1rem; margin-bottom: 0.5rem;
+    font-size: 0.85rem; cursor: pointer; transition: all 0.2s;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .kholle-q:hover { border-color: var(--accent); }
+  .kholle-q .arrow { color: var(--accent); font-size: 0.8rem; }
+  .kholle-answer {
+    background: rgba(232,197,71,0.06); border: 1px solid rgba(232,197,71,0.2);
+    border-radius: 8px; padding: 0.8rem 1rem; margin-top: -0.3rem; margin-bottom: 0.5rem;
+    font-size: 0.83rem; color: var(--muted); line-height: 1.65;
+    display: none;
+  }
+  .kholle-answer.open { display: block; }
+
+  /* COMPREHENSION */
+  .read-text {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 12px; padding: 1.8rem; margin-bottom: 1.5rem;
+    font-size: 0.92rem; line-height: 1.85; color: var(--text);
+  }
+  .read-text .titulo {
+    font-family: 'Playfair Display', serif; font-size: 1.2rem;
+    font-weight: 700; margin-bottom: 0.3rem;
+  }
+  .read-text .subtitulo {
+    font-family: 'DM Mono', monospace; font-size: 0.7rem;
+    color: var(--accent); letter-spacing: 0.1em; margin-bottom: 1rem;
+  }
+  .read-text p { margin-bottom: 0.8rem; }
+  .comprehension-qs { margin-bottom: 1rem; }
+  .comp-q {
+    background: var(--surface2); border: 1px solid var(--border);
+    border-radius: 10px; padding: 1rem; margin-bottom: 0.75rem;
+  }
+  .comp-q .q-text { font-size: 0.88rem; font-weight: 600; margin-bottom: 0.6rem; }
+  .comp-input {
+    width: 100%; background: var(--surface); border: 1px solid var(--border);
+    color: var(--text); font-family: 'Bricolage Grotesque', sans-serif;
+    font-size: 0.85rem; padding: 0.5rem 0.8rem; border-radius: 6px;
+    transition: border-color 0.2s; resize: none;
+  }
+  .comp-input:focus { outline: none; border-color: var(--accent3); }
+  .comp-correction {
+    margin-top: 0.5rem; font-size: 0.8rem; color: var(--success);
+    display: none;
+  }
+  .comp-correction.show { display: block; }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  @media (max-width: 600px) {
+    .kholle-grid { grid-template-columns: 1fr; }
+    .quiz-options { grid-template-columns: 1fr; }
+    .hero::before { font-size: 10rem; }
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-logo">Español <span>ECG</span></div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPanel('home')">Accueil</button>
+    <button class="nav-tab" onclick="showPanel('vocab')">Vocabulaire</button>
+    <button class="nav-tab" onclick="showPanel('grammar')">Grammaire</button>
+    <button class="nav-tab" onclick="showPanel('quiz')">Quiz</button>
+    <button class="nav-tab" onclick="showPanel('read')">Compréhension</button>
+    <button class="nav-tab" onclick="showPanel('kholle')">Kholle</button>
+    <button class="nav-tab" onclick="showPanel('ia')" style="color:var(--accent)">✨ IA Live</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- HOME -->
+<div id="panel-home" class="panel active">
+  <div class="hero">
+    <h1>Maîtrise <em>l'espagnol</em><br>pour ta prépa ECG</h1>
+    <p>Vocabulaire thématique, conjugaison, compréhension et entraînement à la kholle — tout en un seul endroit.</p>
+    <div class="hero-cards">
+      <div class="hero-card" onclick="showPanel('vocab')">
+        <div class="icon">📚</div>
+        <div class="label">Module 1</div>
+        <div class="title">Vocabulaire</div>
+      </div>
+      <div class="hero-card" onclick="showPanel('grammar')">
+        <div class="icon">⚙️</div>
+        <div class="label">Module 2</div>
+        <div class="title">Grammaire</div>
+      </div>
+      <div class="hero-card" onclick="showPanel('quiz')">
+        <div class="icon">🎯</div>
+        <div class="label">Module 3</div>
+        <div class="title">Quiz</div>
+      </div>
+      <div class="hero-card" onclick="showPanel('read')">
+        <div class="icon">📰</div>
+        <div class="label">Module 4</div>
+        <div class="title">Compréhension</div>
+      </div>
+      <div class="hero-card" onclick="showPanel('kholle')">
+        <div class="icon">🎤</div>
+        <div class="label">Module 5</div>
+        <div class="title">Kholle</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- VOCABULAIRE -->
+<div id="panel-vocab" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <h2>Vocabulaire</h2>
+      <span class="tag">THÉMATIQUE</span>
+    </div>
+    <div class="theme-selector" id="themeSelector"></div>
+
+    <div class="mode-selector">
+      <button class="mode-btn active" onclick="setVocabMode('grid')">🗂 Grille</button>
+      <button class="mode-btn" onclick="setVocabMode('flash')">🃏 Flashcards</button>
+    </div>
+
+    <!-- GRID MODE -->
+    <div class="grid-area active" id="gridArea">
+      <button class="toggle-reveal" onclick="toggleReveal()">👁 Masquer / Révéler les traductions</button>
+      <div class="vocab-grid" id="vocabGrid"></div>
+    </div>
+
+    <!-- FLASHCARD MODE -->
+    <div class="flashcard-area" id="flashArea">
+      <div class="fc-dir-toggle">
+        <button class="fc-dir-btn" onclick="toggleFcDir()">ES → FR &nbsp;↕&nbsp; FR → ES</button>
+      </div>
+      <div class="fc-stats">
+        <span>Total : <span id="fcTotal">0</span></span>
+        <span class="known-count">✓ Sus : <span id="fcKnown">0</span></span>
+        <span class="unknown-count">✗ À revoir : <span id="fcUnknown">0</span></span>
+      </div>
+      <div class="fc-progress-bar"><div class="fc-progress-fill" id="fcProgress" style="width:0%"></div></div>
+      <div style="height:0.6rem"></div>
+      <div class="fc-nav">
+        <button class="fc-btn" onclick="fcGo(-1)">←</button>
+        <div class="fc-counter"><span id="fcIdx">1</span> / <span id="fcLen">1</span></div>
+        <button class="fc-btn" onclick="fcGo(1)">→</button>
+      </div>
+      <div class="fc-scene" onclick="flipCard()">
+        <div class="fc-inner" id="fcInner">
+          <div class="fc-face fc-front">
+            <div class="fc-lang" id="fcFrontLang">ESPAÑOL</div>
+            <div class="fc-word" id="fcFrontWord">—</div>
+            <div class="fc-hint">Cliquer pour retourner</div>
+          </div>
+          <div class="fc-face fc-back">
+            <div class="fc-lang" id="fcBackLang">FRANÇAIS</div>
+            <div class="fc-word" id="fcBackWord">—</div>
+          </div>
+        </div>
+      </div>
+      <div class="fc-actions">
+        <button class="fc-unknown" onclick="markCard(false)">✗ À revoir</button>
+        <button class="fc-known" onclick="markCard(true)">✓ Je sais</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAMMAIRE -->
+<div id="panel-grammar" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <h2>Grammaire</h2>
+      <span class="tag">CONJUGAISON & RÈGLES</span>
+    </div>
+    <div class="grammar-tabs">
+      <button class="grammar-tab active" onclick="showGrammar('presente')">Présent</button>
+      <button class="grammar-tab" onclick="showGrammar('preterito')">Prétérit</button>
+      <button class="grammar-tab" onclick="showGrammar('imperfecto')">Imparfait</button>
+      <button class="grammar-tab" onclick="showGrammar('subjuntivo')">Subjonctif</button>
+      <button class="grammar-tab" onclick="showGrammar('condicional')">Conditionnel</button>
+      <button class="grammar-tab" onclick="showGrammar('ser_estar')">Ser / Estar</button>
+      <button class="grammar-tab" onclick="showGrammar('por_para')">Por / Para</button>
+    </div>
+    <div id="grammar-area"></div>
+  </div>
+</div>
+
+<!-- QUIZ -->
+<div id="panel-quiz" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <h2>Quiz</h2>
+      <span class="tag">ENTRAÎNEMENT</span>
+    </div>
+    <div class="quiz-score">
+      <div class="score-item"><div class="num" id="scoreCorrect">0</div><div class="lbl">Corrects</div></div>
+      <div class="score-item"><div class="num" id="scoreTotal">0</div><div class="lbl">Total</div></div>
+      <div class="score-item"><div class="num" id="scorePct">—</div><div class="lbl">Score</div></div>
+    </div>
+    <div class="quiz-setup">
+      <label>Thème :</label>
+      <select class="quiz-select" id="quizTheme" onchange="newQuestion()"></select>
+      <label style="margin-left:1rem;">Direction :</label>
+      <select class="quiz-select" id="quizDir" onchange="newQuestion()">
+        <option value="es-fr">ES → FR</option>
+        <option value="fr-es">FR → ES</option>
+      </select>
+      <button class="btn-primary" onclick="resetScore()" style="margin-left:auto;">Réinitialiser</button>
+    </div>
+    <div class="quiz-box">
+      <div class="quiz-question" id="quizQ">Chargement…</div>
+      <div class="quiz-options" id="quizOpts"></div>
+      <div class="quiz-feedback" id="quizFeedback"></div>
+    </div>
+    <div style="text-align:center; margin-top:1rem;">
+      <button class="btn-primary" onclick="newQuestion()">Question suivante →</button>
+    </div>
+  </div>
+</div>
+
+<!-- COMPRÉHENSION -->
+<div id="panel-read" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <h2>Compréhension écrite</h2>
+      <span class="tag">TEXTES AUTHENTIQUES</span>
+    </div>
+    <div id="readContent"></div>
+  </div>
+</div>
+
+<!-- KHOLLE -->
+<div id="panel-kholle" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <h2>Entraînement Kholle</h2>
+      <span class="tag">ORAL & ÉCRIT</span>
+    </div>
+    <div class="kholle-grid">
+      <div class="kholle-card">
+        <h3>📝 Commentaire de texte <span class="badge">FORMAT</span></h3>
+        <p><strong>Présentation :</strong> 2 min — résumé + thème + thèse<br>
+        <strong>Analyse :</strong> 4-5 min — 2-3 axes argumentés<br>
+        <strong>Conclusion + opinion :</strong> 2 min<br>
+        <strong>Questions :</strong> 3-5 min</p>
+      </div>
+      <div class="kholle-card">
+        <h3>🌍 Question de civilisation <span class="badge">FORMAT</span></h3>
+        <p><strong>Introduction :</strong> problématique + plan annoncé<br>
+        <strong>Développement :</strong> 2-3 parties avec exemples<br>
+        <strong>Conclusion :</strong> bilan + ouverture<br>
+        <strong>Durée totale :</strong> 10-15 min</p>
+      </div>
+    </div>
+    <div id="kholleTexts"></div>
+  </div>
+</div>
+
+<!-- IA LIVE -->
+<div id="panel-ia" class="panel">
+  <div class="section">
+    <div class="section-header">
+      <h2>IA Live</h2>
+      <span class="tag">GÉNÉRÉ EN TEMPS RÉEL</span>
+    </div>
+
+    <!-- Générateur de texte -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem;margin-bottom:1.5rem">
+      <div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--accent);letter-spacing:.1em;margin-bottom:.8rem">GÉNÉRATEUR DE TEXTE DE COMPRÉHENSION</div>
+      <div style="display:flex;gap:.75rem;flex-wrap:wrap;align-items:center;margin-bottom:1rem">
+        <select class="quiz-select" id="genTheme">
+          <option>La mondialisation et ses effets</option>
+          <option>Le changement climatique en Amérique latine</option>
+          <option>Les inégalités sociales en Espagne</option>
+          <option>La transition démocratique en Amérique latine</option>
+          <option>L'immigration et l'identité culturelle</option>
+          <option>La puissance économique de la Chine</option>
+          <option>Le féminisme dans le monde hispanophone</option>
+          <option>La crise vénézuélienne</option>
+          <option>L'énergie et la souveraineté en Amérique latine</option>
+          <option>Le populisme en Europe et en Amérique</option>
+        </select>
+        <select class="quiz-select" id="genNiveau">
+          <option value="B1-B2">B1-B2</option>
+          <option value="B2-C1">B2-C1</option>
+          <option value="C1">C1</option>
+        </select>
+        <button class="btn-primary" id="genBtn" onclick="genereTexte()">✨ Générer un texte</button>
+      </div>
+      <div id="genOutput" style="min-height:80px"></div>
+    </div>
+
+    <!-- Correcteur de production écrite -->
+    <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:1.8rem">
+      <div style="font-family:'DM Mono',monospace;font-size:.72rem;color:var(--accent3);letter-spacing:.1em;margin-bottom:.8rem">CORRECTEUR DE PRODUCTION ÉCRITE</div>
+      <p style="font-size:.84rem;color:var(--muted);margin-bottom:.8rem">Colle ton texte en espagnol ci-dessous — l'IA le corrige, le note et explique chaque erreur.</p>
+      <textarea class="comp-input" id="productionInput" rows="6" placeholder="Escribe tu texto en español aquí…" style="margin-bottom:.8rem"></textarea>
+      <button class="btn-primary" id="corrBtn" onclick="corrigerTexte()">✨ Corriger</button>
+      <div id="correctionOutput" style="margin-top:1.2rem;min-height:40px"></div>
+    </div>
+  </div>
+</div>
+
+</main>
+
+<script>
+// ============================================================
+// DATA
+// ============================================================
+const vocabData = {
+  "Économie & Mondialisation": [
+    {es:"el desarrollo sostenible", fr:"le développement durable"},
+    {es:"la desigualdad", fr:"l'inégalité"},
+    {es:"la globalización", fr:"la mondialisation"},
+    {es:"el crecimiento económico", fr:"la croissance économique"},
+    {es:"la brecha social", fr:"le fossé social"},
+    {es:"la pobreza", fr:"la pauvreté"},
+    {es:"la riqueza", fr:"la richesse"},
+    {es:"el mercado laboral", fr:"le marché du travail"},
+    {es:"la inflación", fr:"l'inflation"},
+    {es:"el desempleo", fr:"le chômage"},
+    {es:"la deuda pública", fr:"la dette publique"},
+    {es:"la inversión extranjera", fr:"l'investissement étranger"},
+    {es:"el comercio internacional", fr:"le commerce international"},
+    {es:"la competitividad", fr:"la compétitivité"},
+    {es:"la multinacional", fr:"la multinationale", g:"f"},
+  ],
+  "Géopolitique & Puissance": [
+    {es:"la soberanía", fr:"la souveraineté"},
+    {es:"el poder", fr:"le pouvoir / la puissance"},
+    {es:"la geopolítica", fr:"la géopolitique"},
+    {es:"el conflicto armado", fr:"le conflit armé"},
+    {es:"la diplomacia", fr:"la diplomatie"},
+    {es:"el multilateralismo", fr:"le multilatéralisme"},
+    {es:"la hegemonía", fr:"l'hégémonie"},
+    {es:"la influencia", fr:"l'influence"},
+    {es:"las sanciones", fr:"les sanctions"},
+    {es:"la disuasión nuclear", fr:"la dissuasion nucléaire"},
+    {es:"el embargo", fr:"l'embargo"},
+    {es:"la alianza", fr:"l'alliance"},
+    {es:"el tratado", fr:"le traité"},
+    {es:"la frontera", fr:"la frontière"},
+    {es:"la tensión geopolítica", fr:"la tension géopolitique"},
+  ],
+  "Société & Culture": [
+    {es:"la identidad cultural", fr:"l'identité culturelle"},
+    {es:"el mestizaje", fr:"le métissage"},
+    {es:"la diversidad", fr:"la diversité"},
+    {es:"la integración", fr:"l'intégration"},
+    {es:"la migración", fr:"la migration"},
+    {es:"el patrimonio", fr:"le patrimoine"},
+    {es:"la memoria histórica", fr:"la mémoire historique"},
+    {es:"la cohesión social", fr:"la cohésion sociale"},
+    {es:"el movimiento social", fr:"le mouvement social"},
+    {es:"la discriminación", fr:"la discrimination"},
+    {es:"los derechos humanos", fr:"les droits de l'homme"},
+    {es:"la laicidad", fr:"la laïcité"},
+    {es:"el feminismo", fr:"le féminisme"},
+    {es:"la brecha de género", fr:"l'écart de genre"},
+    {es:"el bienestar", fr:"le bien-être"},
+  ],
+  "Environnement & Énergie": [
+    {es:"el cambio climático", fr:"le changement climatique"},
+    {es:"la transición energética", fr:"la transition énergétique"},
+    {es:"las energías renovables", fr:"les énergies renouvelables"},
+    {es:"la huella de carbono", fr:"l'empreinte carbone"},
+    {es:"la deforestación", fr:"la déforestation"},
+    {es:"la biodiversidad", fr:"la biodiversité"},
+    {es:"el calentamiento global", fr:"le réchauffement climatique"},
+    {es:"la contaminación", fr:"la pollution"},
+    {es:"el petróleo", fr:"le pétrole"},
+    {es:"la soberanía energética", fr:"la souveraineté énergétique"},
+    {es:"la sequía", fr:"la sécheresse"},
+    {es:"la cumbre climática", fr:"le sommet climatique"},
+    {es:"el acuerdo de París", fr:"l'accord de Paris"},
+    {es:"el reciclaje", fr:"le recyclage"},
+    {es:"la escasez", fr:"la pénurie"},
+  ],
+  "Politique & Démocratie": [
+    {es:"el Estado de derecho", fr:"l'État de droit"},
+    {es:"la democracia", fr:"la démocratie"},
+    {es:"el autoritarismo", fr:"l'autoritarisme"},
+    {es:"la corrupción", fr:"la corruption"},
+    {es:"el sufragio", fr:"le suffrage"},
+    {es:"la sociedad civil", fr:"la société civile"},
+    {es:"la libertad de prensa", fr:"la liberté de la presse"},
+    {es:"la polarización", fr:"la polarisation"},
+    {es:"el populismo", fr:"le populisme"},
+    {es:"la rendición de cuentas", fr:"la responsabilité / l'accountability"},
+    {es:"la transparencia", fr:"la transparence"},
+    {es:"la gobernanza", fr:"la gouvernance"},
+    {es:"el referéndum", fr:"le référendum"},
+    {es:"la oposición", fr:"l'opposition"},
+    {es:"el partido político", fr:"le parti politique"},
+  ],
+  "Innovation & Technologies": [
+    {es:"la inteligencia artificial", fr:"l'intelligence artificielle"},
+    {es:"la digitalización", fr:"la numérisation"},
+    {es:"la ciberseguridad", fr:"la cybersécurité"},
+    {es:"la innovación", fr:"l'innovation"},
+    {es:"el emprendimiento", fr:"l'entrepreneuriat"},
+    {es:"los datos", fr:"les données"},
+    {es:"la vigilancia digital", fr:"la surveillance numérique"},
+    {es:"la desinformación", fr:"la désinformation"},
+    {es:"las redes sociales", fr:"les réseaux sociaux"},
+    {es:"la brecha digital", fr:"la fracture numérique"},
+    {es:"la automatización", fr:"l'automatisation"},
+    {es:"la startup", fr:"la startup"},
+    {es:"el algoritmo", fr:"l'algorithme"},
+    {es:"la privacidad", fr:"la vie privée"},
+    {es:"la soberanía digital", fr:"la souveraineté numérique"},
+  ],
+};
+
+const grammarData = {
+  presente: {
+    title: "Présent de l'indicatif",
+    tables: [
+      { verb:"hablar (régulier -ar)", cols:["Pronom","Forme"], rows:[
+        ["yo","hablo"],["tú","hablas"],["él/ella","habla"],["nosotros","hablamos"],["vosotros","habláis"],["ellos","hablan"]
+      ]},
+      { verb:"ser (irrégulier)", cols:["Pronom","Forme"], rows:[
+        ["yo","soy"],["tú","eres"],["él/ella","es"],["nosotros","somos"],["vosotros","sois"],["ellos","son"]
+      ]},
+      { verb:"tener (irrégulier)", cols:["Pronom","Forme"], rows:[
+        ["yo","tengo"],["tú","tienes"],["él/ella","tiene"],["nosotros","tenemos"],["vosotros","tenéis"],["ellos","tienen"]
+      ]},
+    ],
+    rules:[
+      {title:"Diptongaison e→ie", body:"Verbes comme querer, entender, pensar : la voyelle radicale e devient ie aux personnes yo/tú/él/ellos.", ej:"quiero, quieres, quiere… queremos"},
+      {title:"Diptongaison o→ue", body:"Verbes comme poder, volver, contar : o devient ue aux personnes yo/tú/él/ellos.", ej:"puedo, puedes, puede… podemos"},
+      {title:"Yo irrégulier en -go", body:"Verbes courants : tener→tengo, venir→vengo, poner→pongo, salir→salgo, hacer→hago.", ej:"Yo hago mis deberes cada día."},
+    ]
+  },
+  preterito: {
+    title: "Prétérit indéfini (Pretérito indefinido)",
+    tables:[
+      { verb:"hablar", cols:["Pronom","Forme"], rows:[
+        ["yo","hablé"],["tú","hablaste"],["él/ella","habló"],["nosotros","hablamos"],["vosotros","hablasteis"],["ellos","hablaron"]
+      ]},
+      { verb:"ser / ir (identiques!)", cols:["Pronom","Forme"], rows:[
+        ["yo","fui"],["tú","fuiste"],["él/ella","fue"],["nosotros","fuimos"],["vosotros","fuisteis"],["ellos","fueron"]
+      ]},
+    ],
+    rules:[
+      {title:"Emploi principal", body:"Action ponctuelle, datée et terminée dans le passé. Marqueurs temporaux : ayer, el año pasado, en 2020, de repente.", ej:"La crisis económica estalló en 2008."},
+      {title:"Prétérits forts", body:"Tener→tuv-, estar→estuv-, poder→pud-, poner→pus-, querer→quis-, saber→sup-, venir→vin-, hacer→hic-/hiz-.", ej:"No pude asistir a la reunión."},
+      {title:"vs Imparfait", body:"Prétérit = action délimitée ; Imparfait = description, habitude, cadre. Les deux coexistent souvent dans un même récit.", ej:"Cuando era niño, vivía en Madrid."},
+    ]
+  },
+  imperfecto: {
+    title: "Imparfait (Pretérito imperfecto)",
+    tables:[
+      { verb:"hablar / comer / vivir", cols:["Pronom","-ar","-er/-ir"], rows:[
+        ["yo","hablaba","comía"],["tú","hablabas","comías"],["él/ella","hablaba","comía"],["nosotros","hablábamos","comíamos"],["vosotros","hablabais","comíais"],["ellos","hablaban","comían"]
+      ]},
+    ],
+    rules:[
+      {title:"3 irréguliers seulement", body:"Ser : era/eras/era/éramos/erais/eran. Ir : iba/ibas/iba/íbamos/ibais/iban. Ver : veía/veías/veía/veíamos/veíais/veían.", ej:"Era un país que dependía del petróleo."},
+      {title:"Emplois clés", body:"1) Description passée (cadre, état, décor). 2) Habitude révolue. 3) Action en cours interrompue par une autre (prétérit).", ej:"Mientras dormía, sonó el teléfono."},
+      {title:"Style indirect", body:"Le présent du discours direct devient imparfait au style indirect.", ej:"Dijo que tenía mucho trabajo."},
+    ]
+  },
+  subjuntivo: {
+    title: "Subjonctif présent",
+    tables:[
+      { verb:"hablar / comer / vivir", cols:["Pronom","-ar","-er/-ir"], rows:[
+        ["yo","hable","coma"],["tú","hables","comas"],["él/ella","hable","coma"],["nosotros","hablemos","comamos"],["vosotros","habléis","comáis"],["ellos","hablen","coman"]
+      ]},
+    ],
+    rules:[
+      {title:"Déclencheurs principaux (WEIRDO)", body:"Wish/volonté (quiero que), Emotion (me alegra que), Impersonnel (es importante que), Request (pido que), Doubt/negation (no creo que), Ojalá.", ej:"Es necesario que el país diversifique su economía."},
+      {title:"Expressions temporelles au futur", body:"Cuando, en cuanto, hasta que, antes de que + subjonctif quand l'action est future.", ej:"Cuando llegues, llámame."},
+      {title:"Doute et négation", body:"No creo que, no pienso que, es posible que, quizás/tal vez + subjonctif.", ej:"No creo que la situación mejore pronto."},
+    ]
+  },
+  condicional: {
+    title: "Conditionnel",
+    tables:[
+      { verb:"hablar (régulier)", cols:["Pronom","Forme"], rows:[
+        ["yo","hablaría"],["tú","hablarías"],["él/ella","hablaría"],["nosotros","hablaríamos"],["vosotros","hablaríais"],["ellos","hablarían"]
+      ]},
+    ],
+    rules:[
+      {title:"Emplois", body:"1) Hypothèse (si + imparfait subj. → conditionnel). 2) Politesse. 3) Futur du passé au style indirect.", ej:"Si hubiera más inversión, crecería el empleo."},
+      {title:"Irréguliers courants", body:"tener→tendría, poder→podría, querer→querría, saber→sabría, venir→vendría, hacer→haría, salir→saldría, poner→pondría.", ej:"¿Podrías explicarme la diferencia?"},
+      {title:"Probabilité dans le passé", body:"Le conditionnel peut exprimer une probabilité dans le passé, équivalent de 'devait/aurait pu'.", ej:"Serían las tres cuando llegó."},
+    ]
+  },
+  ser_estar: {
+    title: "Ser vs Estar",
+    tables:[],
+    rules:[
+      {title:"SER — identité permanente", body:"Nationalité, profession, matière, relation, caractéristique essentielle, heure/date, événements passifs, origine.", ej:"España es un país mediterráneo. El tratado fue firmado en 1991."},
+      {title:"ESTAR — état, localisation", body:"État temporaire (physique/psychologique), localisation (personnes et choses), résultats d'un changement, participe dans progressif.", ej:"El presidente está en Madrid. La economía está en crisis."},
+      {title:"Paires piégeuses", body:"Ser rico = être riche (par nature). Estar rico = être délicieux. Ser malo = être méchant. Estar malo = être malade. Ser listo = être intelligent. Estar listo = être prêt.", ej:"El texto es interesante pero el estilo está mal organizado."},
+    ]
+  },
+  por_para: {
+    title: "Por vs Para",
+    tables:[],
+    rules:[
+      {title:"PARA — finalité & destination", body:"But/objectif, destinataire, délai, direction, emploi (travailler pour), opinion personnelle (para mí).", ej:"Este informe es para el jueves. Trabajo para una ONG. Para mí, la globalización tiene ventajas."},
+      {title:"POR — cause & échange", body:"Cause/motif, durée, passage, échange, agent du passif, moyen de communication, approximation.", ej:"La crisis surgió por la dependencia del petróleo. El acuerdo fue firmado por los dos países."},
+      {title:"Expressions figées", body:"Por supuesto, por fin, por lo tanto, por ejemplo, por otro lado — pour l'argumentation. Para entonces, para colmo — pour le discours.", ej:"Por lo tanto, podemos concluir que… Por otro lado, hay que señalar que…"},
+    ]
+  },
+};
+
+const readingTexts = [
+  {
+    titulo: "América Latina y la trampa del petróleo",
+    subtitulo: "GEOPOLÍTICA ECONÓMICA · B1-B2",
+    text: `<p>Venezuela fue durante décadas uno de los países más ricos de América Latina, gracias a sus enormes reservas petrolíferas. Sin embargo, la dependencia excesiva de los ingresos petroleros creó lo que los economistas denominan la "maldición de los recursos". Cuando los precios del crudo cayeron en 2015, la economía venezolana se desplomó de manera brutal.</p>
+    <p>Este fenómeno no es exclusivo de Venezuela. El "mal holandés" —término acuñado por la revista The Economist en 1977— describe cómo un auge exportador puede, paradójicamente, debilitar el resto de la economía nacional al apreciar la moneda y desindustrializar el país.</p>
+    <p>Frente a estos riesgos, algunos países productores han intentado diversificar sus economías. Arabia Saudita lanzó en 2016 su plan "Visión 2030", mientras que los Emiratos Árabes han apostado por el turismo y las finanzas. La transición energética hacia las renovables representa a la vez una amenaza para estas economías y una oportunidad de reinventarse.</p>`,
+    questions:[
+      {q:"¿Por qué Venezuela entró en crisis económica según el texto?", a:"Porque dependía demasiado de los ingresos petroleros. Cuando los precios del petróleo cayeron en 2015, la economía colapsó."},
+      {q:"¿Qué es el 'mal holandés'? ¿De dónde viene el término?", a:"Es un fenómeno económico donde un auge exportador debilita el resto de la economía. El término fue acuñado por The Economist en 1977."},
+      {q:"¿Qué estrategias han adoptado algunos países para evitar esta trampa?", a:"Arabia Saudita lanzó la Visión 2030 para diversificar su economía. Los Emiratos Árabes han apostado por el turismo y las finanzas internacionales."},
+    ]
+  },
+  {
+    titulo: "El ascenso de China y el nuevo orden mundial",
+    subtitulo: "GEOPOLÍTICA · B2",
+    text:`<p>En menos de cuatro décadas, China pasó de ser una economía agraria a convertirse en la segunda potencia mundial. Esta transformación sin precedentes se apoya en un modelo de desarrollo particular: el capitalismo de Estado, en el que el Partido Comunista mantiene el control estratégico de la economía mientras permite la iniciativa privada.</p>
+    <p>La iniciativa "Una Franja, Una Ruta" —presentada por Xi Jinping en 2013— ilustra las ambiciones globales de Pekín. Mediante inversiones en infraestructuras en África, Asia y Europa, China busca extender su influencia geopolítica y asegurarse el acceso a las materias primas que necesita su industria.</p>
+    <p>Sin embargo, este ascenso no está exento de tensiones. Las rivalidades con Estados Unidos se intensifican en ámbitos como el comercio, la tecnología y la presencia militar en el Indo-Pacífico. El mundo asiste, según muchos analistas, a una nueva Guerra Fría o, al menos, a un orden multipolar en construcción.</p>`,
+    questions:[
+      {q:"¿En qué consiste el 'capitalismo de Estado' chino según el texto?", a:"Es un modelo donde el Partido Comunista mantiene el control estratégico de la economía pero permite la iniciativa privada."},
+      {q:"¿Cuál es el objetivo de la iniciativa 'Una Franja, Una Ruta'?", a:"Extender la influencia geopolítica china e asegurarse el acceso a las materias primas, mediante inversiones en infraestructuras."},
+      {q:"¿Cómo describe el texto las relaciones entre China y Estados Unidos?", a:"Como una rivalidad creciente en comercio, tecnología y presencia militar, que algunos comparan con una nueva Guerra Fría."},
+    ]
+  },
+];
+
+const kholleTexts = [
+  {
+    type:"Commentaire de texte",
+    title:"La identidad latinoamericana entre tradición y modernidad",
+    source:"Adaptado de Octavio Paz, El laberinto de la soledad (1950)",
+    text:`"El mexicano no quiere o no puede usar estas palabras y por eso se refugia en el silencio. Más que el pudor, lo detiene el miedo a la opinión ajena. Como todos los pueblos que han vivido grandes catástrofes históricas, el mexicano ha aprendido a esconder su intimidad... La historia de México es la historia del hombre que busca su filiación, su origen."`,
+    questions:[
+      {q:"¿Cuál es la tesis principal de Octavio Paz en este extracto?", a:"Paz sostiene que el mexicano oculta su identidad por miedo al juicio ajeno, y que esta búsqueda de origen es el eje de la historia de México."},
+      {q:"¿Qué relación establece el autor entre historia y identidad?", a:"La identidad es el resultado de las catástrofes históricas que han enseñado a los pueblos a disimular y a buscar sus raíces."},
+      {q:"¿En qué medida este texto puede relacionarse con el concepto de memoria histórica?", a:"Paz conecta la identidad colectiva con el trauma histórico: la conquista, la colonización han forjado un pueblo que busca su origen como forma de sanar su identidad fragmentada."},
+    ]
+  },
+];
+
+// ============================================================
+// NAVIGATION
+// ============================================================
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const order = ['home','vocab','grammar','quiz','read','kholle','ia'];
+  tabs[order.indexOf(id)].classList.add('active');
+}
+
+// ============================================================
+// VOCAB
+// ============================================================
+let hiddenFr = false;
+const themes = Object.keys(vocabData);
+
+function initVocab() {
+  const sel = document.getElementById('themeSelector');
+  themes.forEach((t, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'theme-btn' + (i===0?' active':'');
+    btn.textContent = t;
+    btn.onclick = () => {
+      document.querySelectorAll('.theme-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      renderVocab(t);
+    };
+    sel.appendChild(btn);
+  });
+  renderVocab(themes[0]);
+}
+
+function renderVocab(theme) {
+  const grid = document.getElementById('vocabGrid');
+  grid.innerHTML = '';
+  vocabData[theme].forEach(item => {
+    const card = document.createElement('div');
+    card.className = 'vocab-card' + (hiddenFr ? ' hidden-fr' : '');
+    card.innerHTML = `<div class="es">${item.es}</div><div class="fr">${item.fr}</div>${item.g ? `<div class="genre">${item.g}</div>` : ''}`;
+    card.onclick = () => card.classList.toggle('hidden-fr');
+    grid.appendChild(card);
+  });
+  // also refresh flashcards
+  initFlashcards(theme);
+}
+
+// ============================================================
+// FLASHCARDS
+// ============================================================
+let fcDeck = [];
+let fcIndex = 0;
+let fcFlipped = false;
+let fcDir = 'es-fr'; // 'es-fr' or 'fr-es'
+let fcStatus = {}; // index -> true/false/null
+
+function initFlashcards(theme) {
+  fcDeck = vocabData[theme] || [];
+  fcIndex = 0;
+  fcFlipped = false;
+  fcStatus = {};
+  fcDeck.forEach((_, i) => fcStatus[i] = null);
+  renderCard();
+}
+
+function renderCard() {
+  if (!fcDeck.length) return;
+  const item = fcDeck[fcIndex];
+  const front = fcDir === 'es-fr' ? item.es : item.fr;
+  const back  = fcDir === 'es-fr' ? item.fr : item.es;
+  const frontLang = fcDir === 'es-fr' ? 'ESPAÑOL' : 'FRANÇAIS';
+  const backLang  = fcDir === 'es-fr' ? 'FRANÇAIS' : 'ESPAÑOL';
+  document.getElementById('fcFrontWord').textContent = front;
+  document.getElementById('fcBackWord').textContent = back;
+  document.getElementById('fcFrontLang').textContent = frontLang;
+  document.getElementById('fcBackLang').textContent = backLang;
+  document.getElementById('fcIdx').textContent = fcIndex + 1;
+  document.getElementById('fcLen').textContent = fcDeck.length;
+  document.getElementById('fcTotal').textContent = fcDeck.length;
+  // reset flip
+  fcFlipped = false;
+  document.getElementById('fcInner').classList.remove('flipped');
+  // stats
+  const known = Object.values(fcStatus).filter(v => v === true).length;
+  const unknown = Object.values(fcStatus).filter(v => v === false).length;
+  document.getElementById('fcKnown').textContent = known;
+  document.getElementById('fcUnknown').textContent = unknown;
+  const done = known + unknown;
+  document.getElementById('fcProgress').style.width = fcDeck.length ? (done/fcDeck.length*100)+'%' : '0%';
+}
+
+function flipCard() {
+  fcFlipped = !fcFlipped;
+  document.getElementById('fcInner').classList.toggle('flipped', fcFlipped);
+}
+
+function fcGo(dir) {
+  fcIndex = (fcIndex + dir + fcDeck.length) % fcDeck.length;
+  renderCard();
+}
+
+function markCard(known) {
+  fcStatus[fcIndex] = known;
+  renderCard();
+  // auto-advance
+  setTimeout(() => fcGo(1), 300);
+}
+
+function toggleFcDir() {
+  fcDir = fcDir === 'es-fr' ? 'fr-es' : 'es-fr';
+  renderCard();
+}
+
+function setVocabMode(mode) {
+  document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('gridArea').classList.toggle('active', mode === 'grid');
+  document.getElementById('flashArea').classList.toggle('active', mode === 'flash');
+  if (mode === 'flash') {
+    const activeTheme = document.querySelector('.theme-btn.active');
+    const theme = activeTheme ? activeTheme.textContent : themes[0];
+    initFlashcards(theme);
+  }
+}
+
+function toggleReveal() {
+  hiddenFr = !hiddenFr;
+  document.querySelectorAll('.vocab-card').forEach(c => {
+    hiddenFr ? c.classList.add('hidden-fr') : c.classList.remove('hidden-fr');
+  });
+}
+
+// ============================================================
+// GRAMMAR
+// ============================================================
+function initGrammar() { showGrammar('presente'); }
+
+function showGrammar(key) {
+  document.querySelectorAll('.grammar-tab').forEach(t => t.classList.remove('active'));
+  event && event.target && event.target.classList.add('active');
+  // find active tab
+  const allTabs = document.querySelectorAll('.grammar-tab');
+  allTabs.forEach(t => {
+    if(t.getAttribute('onclick') === `showGrammar('${key}')`) t.classList.add('active');
+  });
+
+  const data = grammarData[key];
+  const area = document.getElementById('grammar-area');
+  let html = `<h3 style="font-family:'Playfair Display',serif;font-size:1.1rem;margin-bottom:1rem;color:var(--accent)">${data.title}</h3>`;
+
+  data.tables.forEach(table => {
+    html += `<p style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:0.08em;margin-bottom:0.4rem;text-transform:uppercase">${table.verb}</p>`;
+    html += `<table class="conj-table"><thead><tr>`;
+    table.cols.forEach(c => html += `<th>${c}</th>`);
+    html += `</tr></thead><tbody>`;
+    table.rows.forEach(r => {
+      html += `<tr>`;
+      r.forEach((cell, i) => html += `<td class="${i===0?'pronoun':''}">${cell}</td>`);
+      html += `</tr>`;
+    });
+    html += `</tbody></table>`;
+  });
+
+  data.rules.forEach(r => {
+    html += `<div class="grammar-rule"><h4>${r.title}</h4><p>${r.body}</p><div class="ejemplo">→ ${r.ej}</div></div>`;
+  });
+
+  area.innerHTML = html;
+}
+
+// ============================================================
+// QUIZ
+// ============================================================
+let score = {correct:0, total:0};
+let currentAnswer = '';
+let answered = false;
+
+function initQuiz() {
+  const sel = document.getElementById('quizTheme');
+  sel.innerHTML = '<option value="all">Tous les thèmes</option>';
+  themes.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t; o.textContent = t;
+    sel.appendChild(o);
+  });
+  newQuestion();
+}
+
+function getPool() {
+  const theme = document.getElementById('quizTheme').value;
+  if(theme === 'all') return themes.flatMap(t => vocabData[t]);
+  return vocabData[theme] || [];
+}
+
+function newQuestion() {
+  answered = false;
+  const pool = getPool();
+  if(pool.length < 4) return;
+  const dir = document.getElementById('quizDir').value;
+  const shuffle = arr => arr.sort(() => Math.random()-0.5);
+  const correct = pool[Math.floor(Math.random()*pool.length)];
+  const wrongs = shuffle(pool.filter(i => i !== correct)).slice(0,3);
+  const options = shuffle([correct, ...wrongs]);
+  const qField = dir === 'es-fr' ? 'es' : 'fr';
+  const aField = dir === 'es-fr' ? 'fr' : 'es';
+  currentAnswer = correct[aField];
+  document.getElementById('quizQ').textContent = correct[qField];
+  document.getElementById('quizFeedback').textContent = '';
+  const optsDiv = document.getElementById('quizOpts');
+  optsDiv.innerHTML = '';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'quiz-opt';
+    btn.textContent = opt[aField];
+    btn.onclick = () => answerQuiz(btn, opt[aField]);
+    optsDiv.appendChild(btn);
+  });
+}
+
+function answerQuiz(btn, answer) {
+  if(answered) return;
+  answered = true;
+  score.total++;
+  if(answer === currentAnswer) {
+    btn.classList.add('correct');
+    score.correct++;
+    document.getElementById('quizFeedback').textContent = '✓ Correcto';
+    document.getElementById('quizFeedback').style.color = 'var(--success)';
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('.quiz-opt').forEach(b => {
+      if(b.textContent === currentAnswer) b.classList.add('correct');
+    });
+    document.getElementById('quizFeedback').textContent = '✗ La bonne réponse était : ' + currentAnswer;
+    document.getElementById('quizFeedback').style.color = 'var(--error)';
+  }
+  updateScore();
+}
+
+function updateScore() {
+  document.getElementById('scoreCorrect').textContent = score.correct;
+  document.getElementById('scoreTotal').textContent = score.total;
+  document.getElementById('scorePct').textContent = score.total > 0 ? Math.round(score.correct/score.total*100)+'%' : '—';
+}
+
+function resetScore() {
+  score = {correct:0, total:0};
+  updateScore();
+  newQuestion();
+}
+
+// ============================================================
+// READING
+// ============================================================
+function initRead() {
+  const container = document.getElementById('readContent');
+  readingTexts.forEach((t, ti) => {
+    let html = `
+      <div class="read-text">
+        <div class="titulo">${t.titulo}</div>
+        <div class="subtitulo">${t.subtitulo}</div>
+        ${t.text}
+      </div>
+      <div class="comprehension-qs">`;
+    t.questions.forEach((q, qi) => {
+      html += `
+        <div class="comp-q">
+          <div class="q-text">${qi+1}. ${q.q}</div>
+          <textarea class="comp-input" rows="2" placeholder="Répondez en espagnol…"></textarea>
+          <div class="comp-correction" id="corr-${ti}-${qi}">✓ ${q.a}</div>
+        </div>`;
+    });
+    html += `</div>
+    <div style="display:flex;gap:.75rem;margin-bottom:2.5rem">
+      <button class="btn-primary" onclick="showCorrections(${ti}, ${t.questions.length})">Voir les corrections</button>
+      <button class="toggle-reveal" onclick="hideCorrections(${ti}, ${t.questions.length})">Masquer</button>
+    </div>
+    <hr style="border-color:var(--border);margin-bottom:2.5rem">`;
+    container.innerHTML += html;
+  });
+}
+
+function showCorrections(ti, n) {
+  for(let i=0;i<n;i++) document.getElementById(`corr-${ti}-${i}`).classList.add('show');
+}
+function hideCorrections(ti, n) {
+  for(let i=0;i<n;i++) document.getElementById(`corr-${ti}-${i}`).classList.remove('show');
+}
+
+// ============================================================
+// KHOLLE
+// ============================================================
+function initKholle() {
+  const container = document.getElementById('kholleTexts');
+  kholleTexts.forEach((k, ki) => {
+    let html = `
+      <div style="margin-bottom:1.5rem">
+        <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--accent);letter-spacing:.1em;margin-bottom:.5rem;text-transform:uppercase">${k.type}</div>
+        <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem">${k.title}</h3>
+        <div class="text-box"><div class="source">${k.source}</div>${k.text}</div>
+        <div class="kholle-questions">`;
+    k.questions.forEach((q, qi) => {
+      html += `
+          <div class="kholle-q" onclick="toggleKQ(${ki},${qi})">
+            <span>${qi+1}. ${q.q}</span>
+            <span class="arrow" id="arrow-${ki}-${qi}">▼</span>
+          </div>
+          <div class="kholle-answer" id="kqa-${ki}-${qi}">${q.a}</div>`;
+    });
+    html += `</div></div>
+    <hr style="border-color:var(--border);margin-bottom:2rem">`;
+    container.innerHTML += html;
+  });
+
+  // Civilisation questions
+  container.innerHTML += `
+    <div>
+      <div style="font-family:'DM Mono',monospace;font-size:0.72rem;color:var(--accent);letter-spacing:.1em;margin-bottom:.5rem;text-transform:uppercase">Question de civilisation — Banque de sujets</div>
+      <h3 style="font-family:'Playfair Display',serif;font-size:1.3rem;margin-bottom:1rem">Sujets types à préparer</h3>
+      <div class="kholle-questions">
+        ${[
+          "¿Cómo han influido las dictaduras militares en la construcción de las democracias latinoamericanas actuales?",
+          "La integración regional en América Latina : ¿proyecto inacabado o proceso en marcha?",
+          "La crisis venezolana : causas económicas, consecuencias políticas y respuestas internacionales",
+          "España y la Unión Europea : ¿beneficiaria o contribuyente neta?",
+          "El feminismo en el mundo hispanohablante : avances, resistencias y movimientos actuales",
+          "La transición española (1975-1982) : modelo democrático o transición pactada ?",
+        ].map((s, i) => `
+          <div class="kholle-q" style="cursor:default">
+            <span>${i+1}. ${s}</span>
+          </div>`).join('')}
+      </div>
+    </div>`;
+}
+
+function toggleKQ(ki, qi) {
+  const ans = document.getElementById(`kqa-${ki}-${qi}`);
+  const arrow = document.getElementById(`arrow-${ki}-${qi}`);
+  ans.classList.toggle('open');
+  arrow.textContent = ans.classList.contains('open') ? '▲' : '▼';
+}
+
+// ============================================================
+// INIT
+// ============================================================
+initVocab();
+initGrammar();
+initQuiz();
+initRead();
+initKholle();
+
+// ============================================================
+// IA LIVE — appel backend Vercel /api/claude
+// ============================================================
+async function callClaude(system, userMsg, maxTokens = 1000) {
+  const res = await fetch('/api/claude', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      system,
+      messages: [{ role: 'user', content: userMsg }],
+      max_tokens: maxTokens,
+    }),
+  });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'Erreur API');
+  return data.content[0].text;
+}
+
+// --- Génération de texte de compréhension ---
+async function genereTexte() {
+  const theme = document.getElementById('genTheme').value;
+  const niveau = document.getElementById('genNiveau').value;
+  const out = document.getElementById('genOutput');
+  const btn = document.getElementById('genBtn');
+  btn.disabled = true;
+  btn.textContent = 'Génération…';
+  out.innerHTML = '<div style="color:var(--muted);padding:1rem;font-style:italic">L\'IA rédige le texte…</div>';
+
+  try {
+    const system = `Tu es un professeur d'espagnol pour classe préparatoire ECG française. 
+Tu génères des textes de compréhension en espagnol sur des thèmes géopolitiques, économiques ou sociaux. 
+Réponds UNIQUEMENT en JSON valide, sans balises markdown, avec ce format exact :
+{"titulo":"...","subtitulo":"THÈME · NIVEAU","paragraphs":["...","...","..."],"questions":[{"q":"...","a":"..."},{"q":"...","a":"..."},{"q":"...","a":"..."}]}`;
+
+    const userMsg = `Génère un texte de compréhension écrite en espagnol sur le thème : "${theme}". 
+Niveau : ${niveau}. 3 paragraphes de 4-5 lignes chacun. 3 questions de compréhension avec réponses. 
+Les questions doivent être en espagnol, les réponses aussi.`;
+
+    const raw = await callClaude(system, userMsg, 1200);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const data = JSON.parse(clean);
+
+    let html = `
+      <div class="read-text" style="margin-bottom:1rem">
+        <div class="titulo">${data.titulo}</div>
+        <div class="subtitulo">${data.subtitulo}</div>
+        ${data.paragraphs.map(p => `<p>${p}</p>`).join('')}
+      </div>
+      <div class="comprehension-qs">`;
+    data.questions.forEach((q, i) => {
+      html += `
+        <div class="comp-q">
+          <div class="q-text">${i+1}. ${q.q}</div>
+          <textarea class="comp-input" rows="2" placeholder="Répondez en espagnol…"></textarea>
+          <div class="comp-correction" id="gen-corr-${i}" style="display:none;margin-top:.5rem;font-size:.8rem;color:var(--success)">✓ ${q.a}</div>
+        </div>`;
+    });
+    html += `</div>
+      <div style="display:flex;gap:.75rem;margin-top:.5rem">
+        <button class="btn-primary" onclick="document.querySelectorAll('[id^=gen-corr]').forEach(e=>e.style.display='block')">Voir corrections</button>
+        <button class="toggle-reveal" onclick="document.querySelectorAll('[id^=gen-corr]').forEach(e=>e.style.display='none')">Masquer</button>
+      </div>`;
+    out.innerHTML = html;
+  } catch(e) {
+    out.innerHTML = `<div style="color:var(--error);padding:1rem">Erreur : ${e.message}</div>`;
+  }
+  btn.disabled = false;
+  btn.textContent = '✨ Générer un texte';
+}
+
+// --- Correcteur de production écrite ---
+async function corrigerTexte() {
+  const texte = document.getElementById('productionInput').value.trim();
+  if (!texte) return;
+  const out = document.getElementById('correctionOutput');
+  const btn = document.getElementById('corrBtn');
+  btn.disabled = true; btn.textContent = 'Correction…';
+  out.innerHTML = '<div style="color:var(--muted);padding:1rem;font-style:italic">L\'IA analyse ton texte…</div>';
+
+  try {
+    const system = `Tu es un professeur d'espagnol pour classe préparatoire ECG. 
+Tu corriges des productions écrites en espagnol. 
+Réponds en JSON valide sans markdown :
+{"note":"X/20","bilan":"...", "erreurs":[{"original":"...","correction":"...","explication":"..."}],"points_forts":["..."],"conseils":["..."]}`;
+
+    const raw = await callClaude(system, `Corrige ce texte en espagnol et donne une note sur 20 :\n\n${texte}`, 1500);
+    const clean = raw.replace(/```json|```/g, '').trim();
+    const d = JSON.parse(clean);
+
+    let html = `
+      <div style="display:flex;align-items:center;gap:1rem;margin-bottom:1.2rem">
+        <div style="font-family:'Playfair Display',serif;font-size:2.5rem;color:var(--accent)">${d.note}</div>
+        <div style="font-size:.9rem;color:var(--muted);line-height:1.6">${d.bilan}</div>
+      </div>`;
+
+    if (d.erreurs?.length) {
+      html += `<div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--accent);letter-spacing:.1em;margin-bottom:.6rem">ERREURS À CORRIGER</div>`;
+      d.erreurs.forEach(e => {
+        html += `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:8px;padding:.8rem 1rem;margin-bottom:.5rem;font-size:.84rem">
+          <span style="color:var(--error);text-decoration:line-through">${e.original}</span>
+          <span style="color:var(--muted)"> → </span>
+          <span style="color:var(--success)">${e.correction}</span>
+          <div style="color:var(--muted);font-size:.78rem;margin-top:.3rem">${e.explication}</div>
+        </div>`;
+      });
+    }
+    if (d.points_forts?.length) {
+      html += `<div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--success);letter-spacing:.1em;margin:.8rem 0 .4rem">POINTS FORTS</div>`;
+      d.points_forts.forEach(p => html += `<div style="font-size:.84rem;color:var(--muted);margin-bottom:.3rem">✓ ${p}</div>`);
+    }
+    if (d.conseils?.length) {
+      html += `<div style="font-family:'DM Mono',monospace;font-size:.7rem;color:var(--accent3);letter-spacing:.1em;margin:.8rem 0 .4rem">CONSEILS</div>`;
+      d.conseils.forEach(c => html += `<div style="font-size:.84rem;color:var(--muted);margin-bottom:.3rem">→ ${c}</div>`);
+    }
+    out.innerHTML = html;
+  } catch(e) {
+    out.innerHTML = `<div style="color:var(--error);padding:1rem">Erreur : ${e.message}</div>`;
+  }
+  btn.disabled = false; btn.textContent = '✨ Corriger';
+}
+</script>
+</body>
+</html>
